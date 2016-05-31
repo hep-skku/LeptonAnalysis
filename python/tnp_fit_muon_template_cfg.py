@@ -1,4 +1,6 @@
 import FWCore.ParameterSet.Config as cms
+from os import environ
+home = environ["HOME"]
 
 process = cms.Process("TagProbe")
 process.source = cms.Source("EmptySource")
@@ -7,15 +9,15 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
 process.tnpTemplate = cms.EDAnalyzer("TagProbeFitTreeAnalyzer",
     ## Input, output
     InputFileNames = cms.vstring(
-        "root://eoscms//eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part1.root",
-        "root://eoscms//eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part2.root",
-        "root://eoscms//eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part3.root",
-        "root://eoscms//eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part3.root",
-        "root://eoscms//eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part5.root",
-        "root://eoscms//eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part6.root",
-        "root://eoscms//eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part7.root",
+        "file:"+home+"/eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part1.root",
+        "file:"+home+"/eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part2.root",
+        "file:"+home+"/eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part3.root",
+        "file:"+home+"/eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part3.root",
+        "file:"+home+"/eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part5.root",
+        "file:"+home+"/eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part6.root",
+        "file:"+home+"/eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part7.root",
 
-        "root://eoscms//eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunC.root",
+        "file:"+home+"/eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunC.root",
     ),
     OutputFileName = cms.string("tnp_fit.root"),
 
