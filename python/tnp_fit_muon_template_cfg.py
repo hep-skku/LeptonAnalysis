@@ -38,7 +38,7 @@ process.tnpTemplate = cms.EDAnalyzer("TagProbeFitTreeAnalyzer",
 
         combRelIsoPF03dBeta = cms.vstring("relative isolation #Delta R 0.4 with #Delta#beta correction", "0", "0.5", ""),
         combRelIsoPF04dBeta = cms.vstring("relative isolation #Delta R 0.3 with #Delta#beta correction", "0", "0.5", ""),
-        pair_nJets30        = cms.vstring("nJets30", "0", "999", ""),
+        pair_nJets30        = cms.vstring("nJets30", "0", "10", ""),
     ),
 
     ## Flags
@@ -73,7 +73,7 @@ process.tnpTemplate = cms.EDAnalyzer("TagProbeFitTreeAnalyzer",
                 ## flags and conditions required at the denominator,
                 tag_pt = cms.vdouble(20. , 500.),
                 tag_IsoMu20 = cms.vstring("pass"),
-                pair_nJets30 = cms.vdouble(0, 999),
+                pair_nJets30 = cms.vdouble(0, 10),
             ),
             BinToPDFmap = cms.vstring("voigtPlusExpo"), ## PDF to use, as defined below
         ),
