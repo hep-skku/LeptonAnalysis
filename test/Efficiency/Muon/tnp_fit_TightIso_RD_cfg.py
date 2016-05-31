@@ -11,9 +11,9 @@ process.tnpTightIso.Efficiencies.TightIso.EfficiencyCategoryAndState = cms.vstri
 
 ## Modify parameters as you wish
 ## Change PDF
-#process.BinToPDFmap = cms.vstring("voigtPlusCheb")
+#process.tnpTightIso.Efficiencies.TightIso.BinToPDFmap = cms.vstring("voigtPlusCheb")
 ## Cut on denominator by adding BinnedVariables
-#process.BinnedVariables.pair_nJets30 = cms.vdouble(2,999) ## nJet >= 2 for ttbar
+#process.tnpTightIso.Efficiencies.TightIso.BinnedVariables.pair_nJets30 = cms.vdouble(2,999) ## nJet >= 2 for ttbar
 
 process.p = cms.Path(process.tnpTightIso)
 
