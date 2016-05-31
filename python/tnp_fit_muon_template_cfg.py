@@ -5,17 +5,18 @@ process.source = cms.Source("EmptySource")
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
 
 process.tnpTemplate = cms.EDAnalyzer("TagProbeFitTreeAnalyzer",
-    ## Input, output 
+    ## Input, output
     InputFileNames = cms.vstring(
-        "/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part1.root",
-        "/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part2.root",
-        "/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part3.root",
-        "/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part3.root",
-        "/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part5.root",
-        "/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part6.root",
-        "/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part7.root",
-
-        "/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunC.root",
+#        "root://eoscms//eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part1.root",
+#        "root://eoscms//eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part2.root",
+#        "root://eoscms//eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part3.root",
+#        "root://eoscms//eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part3.root",
+#        "root://eoscms//eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part5.root",
+#        "root://eoscms//eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part6.root",
+#        "root://eoscms//eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunD_part7.root",
+#
+#        "root://eoscms//eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunC.root",
+        "file:/afs/cern.ch/user/j/jhgoh/eos/cms/store/group/phys_muon/TagAndProbe/76XtreeProduction/v41/TnPTree_v41_76X_RunC.root",
     ),
     OutputFileName = cms.string("tnp_fit.root"),
 
@@ -34,7 +35,9 @@ process.tnpTemplate = cms.EDAnalyzer("TagProbeFitTreeAnalyzer",
         dB      = cms.vstring("dxy muon", "0", "2", "cm"),
         dzPV    = cms.vstring("dz PV muon", "-5", "5", "cm"),
 
-        pair_nJets30       = cms.vstring("nJets30", "0", "10", ""),
+        combRelIsoPF03dBeta = cms.vstring("relative isolation #Delta R 0.4 with #Delta#beta correction", "0", "0.5", ""),
+        combRelIsoPF04dBeta = cms.vstring("relative isolation #Delta R 0.3 with #Delta#beta correction", "0", "0.5", ""),
+        pair_nJets30        = cms.vstring("nJets30", "0", "999", ""),
     ),
 
     ## Flags
@@ -45,30 +48,34 @@ process.tnpTemplate = cms.EDAnalyzer("TagProbeFitTreeAnalyzer",
     ),
 
     Expressions = cms.PSet(
-        Tight_var = cms.vstring("var_Tight", "Tight2012==1 && abs(dB) < 0.2 && abs(dzPV) < 0.5", "Tight2012",  "dB", "dzPV"),
+        var_TightId = cms.vstring("var_TightId", "Tight2012==1 && abs(dB) < 0.2 && abs(dzPV) < 0.5", "Tight2012",  "dB", "dzPV"),
     ),
 
     ## Cuts : name, variable, cut threshold
     Cuts = cms.PSet(
-        Tight_cut = cms.vstring( "Tight_cut", "Tight_var", "0.5"),
+        cut_TightId = cms.vstring("cut_TightId", "var_TightId", "0.5"),
+        cut_TightIso = cms.vstring("cut_TightIso", "combRelIsoPF04dBeta", "0.15"),
+        cut_TightIso03 = cms.vstring("cut_TightIso", "combRelIsoPF03dBeta", "0.15"),
     ),
 
     ## What to fit
     Efficiencies = cms.PSet(
-        UnbinnedVariables = cms.vstring("mass"),
-        EfficiencyCategoryAndState = cms.vstring("Tight_cut", "above"), ## Numerator definition
-        BinnedVariables = cms.PSet(
-            ## Binning in continuous variables
-            #pt    = cms.vdouble(20, 25, 30, 40, 50, 60, 80, 120, 200),
-            #eta   = cms.vdouble(-2.4, -2.1, -1.6, -1.2, -0.9, -0.3, -0.2, 0.2, 0.3, 0.9, 1.2, 1.6, 2.1, 2.4),
-            pt     = cms.vdouble(20, 25, 30, 40, 50, 60, 120),
-            abseta = cms.vdouble(0.0, 0.9, 1.2, 2.1, 2.4),
-            ## flags and conditions required at the denominator, 
-            tag_pt = cms.vdouble(20. , 500.),
-            tag_IsoMu20 = cms.vstring("pass"),
-            pair_nJets30 = cms.vdouble(0, 999),
+        TightId = cms.PSet(
+            UnbinnedVariables = cms.vstring("mass"),
+            EfficiencyCategoryAndState = cms.vstring("cut_TightId", "above"), ## Numerator definition
+            BinnedVariables = cms.PSet(
+                ## Binning in continuous variables
+                #pt    = cms.vdouble(20, 25, 30, 40, 50, 60, 80, 120, 200),
+                #eta   = cms.vdouble(-2.4, -2.1, -1.6, -1.2, -0.9, -0.3, -0.2, 0.2, 0.3, 0.9, 1.2, 1.6, 2.1, 2.4),
+                pt     = cms.vdouble(20, 25, 30, 40, 50, 60, 120),
+                abseta = cms.vdouble(0.0, 0.9, 1.2, 2.1, 2.4),
+                ## flags and conditions required at the denominator,
+                tag_pt = cms.vdouble(20. , 500.),
+                tag_IsoMu20 = cms.vstring("pass"),
+                pair_nJets30 = cms.vdouble(0, 999),
+            ),
+            BinToPDFmap = cms.vstring("voigtPlusExpo"), ## PDF to use, as defined below
         ),
-        BinToPDFmap = cms.vstring("voigtPlusExpo"), ## PDF to use, as defined below
     ),
 
     PDFs = cms.PSet(
