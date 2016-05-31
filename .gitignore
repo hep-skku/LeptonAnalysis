@@ -2,3 +2,4 @@
 core.*
 *.swp
 *.root
+__init__.py
