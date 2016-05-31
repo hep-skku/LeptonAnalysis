@@ -1,2 +1,4 @@
 *.pyc
 core.*
+*.swp
+*.root
