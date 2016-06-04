@@ -57,7 +57,8 @@ void CandToWeightProductProducer::produce(edm::Event& event, const edm::EventSet
 
   edm::Handle<edm::View<reco::Candidate> > candHandle;
   event.getByToken(candToken_, candHandle);
-  std::vector<float> values(weight, candHandle->size());
+  std::vector<float> values;
+  for ( int i=0, n=candHandle->size(); i<n; ++i ) values.push_back(weight);
 
   std::auto_ptr<edm::ValueMap<float> > vMap(new edm::ValueMap<float>());
   edm::ValueMap<float>::Filler filler(*vMap);
