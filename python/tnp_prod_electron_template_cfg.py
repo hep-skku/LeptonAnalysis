@@ -124,8 +124,27 @@ process.tpTree = cms.EDAnalyzer("TagProbeFitTreeProducer",
         idMvaWp90 = cms.string("electronID('mvaEleID-Spring15-25ns-Trig-V1-wp90')"),
     ),
     flags = cms.PSet(
-        HLTModule_Ele23_WPLoose = cms.string("!triggerObjectMatchesByFilter('hltEle23WPLooseGsfTrackIsoFilter').empty()"),
         HLT_Ele23_WPLoose = cms.string("!triggerObjectMatchesByPath('HLT_Ele23_WPLoose_Gsf_v*').empty()"),
+
+        ## SingleElectron path
+        HLT_SingleEl = cms.string("!triggerObjectMatchesByPath('HLT_Ele22_eta2p1_WP75_Gsf_v*').empty()"
+                                 + "|| !triggerObjectMatchesByPath('HLT_Ele22_eta2p1_WPLoose_Gsf_v*').empty()"),
+
+        ## DoubleEG paths
+        ## ElEl : HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*
+        ##   hltEle17Ele12CaloIdLTrackIdLIsoVLTrackIsoLeg*Filter comes together in a single sequence
+        ##   hltEle17Ele12CaloIdLTrackIdLIsoVLDZFilter comes after the leg1/leg2 filter sequence
+        HLT_ElEl_leg1 = cms.string("!triggerObjectMatchesByFilter('hltEle17Ele12CaloIdLTrackIdLIsoVLTrackIsoLeg1Filter').empty()"),
+        HLT_ElEl_leg2 = cms.string("!triggerObjectMatchesByFilter('hltEle17Ele12CaloIdLTrackIdLIsoVLTrackIsoLeg2Filter').empty()"),
+        HLT_ElEl_DZ   = cms.string("!triggerObjectMatchesByFilter('hltEle17Ele12CaloIdLTrackIdLIsoVLDZFilter').empty()"),
+
+        ## MuEG paths:
+        ##   HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v* :
+        ##     hltMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVLElectronlegTrackIsoFilter comes after the Mu17 sequence
+        ##   HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v* :
+        ##     hltMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVLElectronlegTrackIsoFilter comes after the Mu8 sequence
+        HLT_MuEl_path1 = cms.string("!triggerObjectMatchesByFilter('hltMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVLElectronlegTrackIsoFilter').empty()"),
+        HLT_MuEl_path2 = cms.string("!triggerObjectMatchesByFilter('hltMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVLElectronlegTrackIsoFilter').empty()"),
     ),
     tagVariables = cms.PSet(
         nvertices = cms.InputTag("nverticesModule"),
