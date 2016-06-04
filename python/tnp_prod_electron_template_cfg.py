@@ -35,7 +35,8 @@ process.load("PhysicsTools.PatAlgos.slimming.unpackedPatTrigger_cfi")
 process.matchElectronTriggers = cms.EDProducer("PATTriggerMatcherDRLessByR",
     src     = cms.InputTag("slimmedElectrons"),
     matched = cms.InputTag("unpackedPatTrigger"),
-    matchedCuts = cms.string("type('TriggerElectron')"),
+    #matchedCuts = cms.string("type('TriggerElectron')"),
+    matchedCuts = cms.string("path('HLT_Ele*')"),
     maxDeltaR = cms.double(0.5),
     resolveAmbiguities    = cms.bool( True ),
     resolveByMatchQuality = cms.bool( True ),
@@ -96,7 +97,7 @@ process.njets30Module = cms.EDProducer("CandCleanedMultiplicityCounter",
 process.load("CATTools.CatProducer.pileupWeight_cff")
 process.load("CATTools.CatProducer.genWeight_cff")
 process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
-process.productOfAllWeight = cms.EDProducer("CandToWeightProductProducer",
+process.productOfAllWeights = cms.EDProducer("CandToWeightProductProducer",
     src = cms.InputTag("tpPairs"),
     weights = cms.VInputTag(
         cms.InputTag("pileupWeight"),
@@ -122,7 +123,10 @@ process.tpTree = cms.EDAnalyzer("TagProbeFitTreeProducer",
         idMvaWp80 = cms.string("electronID('mvaEleID-Spring15-25ns-Trig-V1-wp80')"),
         idMvaWp90 = cms.string("electronID('mvaEleID-Spring15-25ns-Trig-V1-wp90')"),
     ),
-    flags = cms.PSet(),
+    flags = cms.PSet(
+        HLTModule_Ele23_WPLoose = cms.string("!triggerObjectMatchesByFilter('hltEle23WPLooseGsfTrackIsoFilter').empty()"),
+        HLT_Ele23_WPLoose = cms.string("!triggerObjectMatchesByPath('HLT_Ele23_WPLoose_Gsf_v*').empty()"),
+    ),
     tagVariables = cms.PSet(
         nvertices = cms.InputTag("nverticesModule"),
     ),
@@ -145,6 +149,7 @@ process.tnpSimpleSequence = cms.Sequence(
   + process.probeElectrons
   + process.tpPairs + process.onePair
   + process.nverticesModule + process.njets30Module
+  + process.pileupWeight + process.flatGenWeights + process.productOfAllWeights
   + process.tpTree
 )
 
