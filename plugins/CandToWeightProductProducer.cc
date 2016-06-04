@@ -23,6 +23,7 @@ private:
   //edm::EDGetTokenT<reco::GenParticleCollection> genParticlesToken_;
   edm::EDGetTokenT<edm::View<reco::Candidate> > candToken_;
   std::vector<edm::EDGetTokenT<float> > fTokens_;
+  std::vector<edm::EDGetTokenT<double> > dTokens_;
   std::vector<edm::EDGetTokenT<int> > iTokens_;
 
 };
@@ -39,6 +40,7 @@ CandToWeightProductProducer::CandToWeightProductProducer(const edm::ParameterSet
   candToken_ = consumes<edm::View<reco::Candidate> >(pset.getParameter<edm::InputTag>("src"));
   for ( auto label : pset.getParameter<std::vector<edm::InputTag> >("weights") ) {
     fTokens_.push_back(consumes<float>(label));
+    dTokens_.push_back(mayConsume<double>(label));
     iTokens_.push_back(mayConsume<int>(label));
   }
 
@@ -50,8 +52,10 @@ void CandToWeightProductProducer::produce(edm::Event& event, const edm::EventSet
   double weight = 1.0;
   edm::Handle<float> fHandle;
   edm::Handle<int> iHandle;
+  edm::Handle<double> dHandle;
   for ( int i=0, n=fTokens_.size(); i<n; ++i ) {
     if      ( event.getByToken(fTokens_[i], fHandle) ) weight *= *fHandle;
+    else if ( event.getByToken(dTokens_[i], fHandle) ) weight *= *dHandle;
     else if ( event.getByToken(iTokens_[i], iHandle) ) weight *= *iHandle;
   }
 
