@@ -55,7 +55,7 @@ void CandToWeightProductProducer::produce(edm::Event& event, const edm::EventSet
   edm::Handle<double> dHandle;
   for ( int i=0, n=fTokens_.size(); i<n; ++i ) {
     if      ( event.getByToken(fTokens_[i], fHandle) ) weight *= *fHandle;
-    else if ( event.getByToken(dTokens_[i], fHandle) ) weight *= *dHandle;
+    else if ( event.getByToken(dTokens_[i], dHandle) ) weight *= *dHandle;
     else if ( event.getByToken(iTokens_[i], iHandle) ) weight *= *iHandle;
   }
 
