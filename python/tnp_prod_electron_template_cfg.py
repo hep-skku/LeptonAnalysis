@@ -32,22 +32,34 @@ process.triggerResultsFilter.hltResults = "TriggerResults::HLT"
 
 ## Trigger matching
 process.load("PhysicsTools.PatAlgos.slimming.unpackedPatTrigger_cfi")
+process.baseElectrons = cms.EDFilter("PATElectronSelector",
+    src = cms.InputTag("slimmedElectrons"),
+    cut = cms.string(
+         "gsfTrack.isNonnull && superCluster.isNonnull"
+       + "&& pt >= 10 && abs(superCluster.eta) <= 2.5"
+    )
+)
+process.twoBaseElectrons = cms.EDFilter("CandViewCountFilter",
+    src = cms.InputTag("baseElectrons"),
+    minNumber = cms.uint32(2)
+)
 process.matchElectronTriggers = cms.EDProducer("PATTriggerMatcherDRLessByR",
-    src     = cms.InputTag("slimmedElectrons"),
+    src     = cms.InputTag("baseElectrons"),
     matched = cms.InputTag("unpackedPatTrigger"),
     #matchedCuts = cms.string("type('TriggerElectron')"),
-    matchedCuts = cms.string("path('HLT_Ele*')"),
+    matchedCuts = cms.string("path('HLT_Ele*') || path('HLT_Mu*')"),
     maxDeltaR = cms.double(0.5),
     resolveAmbiguities    = cms.bool( True ),
     resolveByMatchQuality = cms.bool( True ),
 )
 process.patElectronsWithTrigger = cms.EDProducer("PATTriggerMatchElectronEmbedder",
-    src = cms.InputTag("slimmedElectrons"),
+    src = cms.InputTag("baseElectrons"),
     matches = cms.VInputTag(cms.InputTag("matchElectronTriggers")),
 )
 
 process.patElectronSequence = cms.Sequence(
-    process.unpackedPatTrigger + process.matchElectronTriggers
+    process.baseElectrons + process.twoBaseElectrons
+  + process.unpackedPatTrigger + process.matchElectronTriggers
   + process.patElectronsWithTrigger
 )
 
@@ -55,10 +67,8 @@ process.patElectronSequence = cms.Sequence(
 process.tagElectrons = cms.EDFilter("PATElectronSelector",
     src = cms.InputTag("patElectronsWithTrigger"),
     cut = cms.string(
-        "gsfTrack.isNonnull && superCluster.isNonnull"
-      + "&& pt >= 25 && abs(superCluster.eta) <= 2.5"
+        "pt >= 25"
       + "&& !(1.4442<=abs(superCluster.eta) && abs(superCluster.eta)<=1.566)"
-#      + "&& !triggerObjectMatchesByFilter('hltEle23WPLooseGsfTrackIsoFilter').empty()"
       + "&& !triggerObjectMatchesByPath('HLT_Ele23_WPLoose_Gsf_v*').empty()"
     ),
 )
@@ -66,13 +76,11 @@ process.oneTag  = cms.EDFilter("CandViewCountFilter", src = cms.InputTag("tagEle
 process.probeElectrons = cms.EDFilter("PATElectronSelector",
     src = cms.InputTag("patElectronsWithTrigger"),
     cut = cms.string(
-        "gsfTrack.isNonnull && superCluster.isNonnull"
-      + "&& abs(superCluster.eta)<=2.5 && (ecalEnergy*sin(superClusterPosition.theta)>10.0)"
+        "ecalEnergy*sin(superClusterPosition.theta)>10.0"
     ),
 )
 process.tpPairs = cms.EDProducer("CandViewShallowCloneCombiner",
-    #cut = cms.string('60 < mass < 140 && abs(daughter(0).vz - daughter(1).vz) < 4'),
-    cut = cms.string('60 < mass && abs(daughter(0).vz - daughter(1).vz) < 4'),
+    cut = cms.string('60 < mass && mass < 140 && abs(daughter(0).vz - daughter(1).vz) < 4'),
     decay = cms.string('tagElectrons@+ probeElectrons@-'),
 )
 process.onePair = cms.EDFilter("CandViewCountFilter", src = cms.InputTag("tpPairs"), minNumber = cms.uint32(1))
@@ -95,22 +103,13 @@ process.load("CATTools.CatProducer.genWeight_cff")
 process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 process.productOfAllWeights = cms.EDProducer("CandToWeightProductProducer",
     src = cms.InputTag("tpPairs"),
-    weights = cms.VInputTag(
-        cms.InputTag("pileupWeight"),
-        cms.InputTag("flatGenWeights"),
-    ),
+    weights = cms.VInputTag(cms.InputTag("flatGenWeights"), cms.InputTag("pileupWeight")),
 )
 process.productOfAllWeightsPUUp = process.productOfAllWeights.clone(
-    weights = cms.VInputTag(
-        cms.InputTag("pileupWeight:up"),
-        cms.InputTag("flatGenWeights"),
-    )
+    weights = cms.VInputTag(cms.InputTag("flatGenWeights"), cms.InputTag("pileupWeight:up")),
 )
 process.productOfAllWeightsPUDn = process.productOfAllWeights.clone(
-    weights = cms.VInputTag(
-        cms.InputTag("pileupWeight:dn"),
-        cms.InputTag("flatGenWeights"),
-    )
+    weights = cms.VInputTag(cms.InputTag("flatGenWeights"), cms.InputTag("pileupWeight:dn")),
 )
 
 ## Tree producer
@@ -179,7 +178,8 @@ process.tnpSimpleSequence = cms.Sequence(
   + process.probeElectrons
   + process.tpPairs + process.onePair
   + process.nverticesModule + process.njets30Module
-  + process.pileupWeight + process.flatGenWeights + process.productOfAllWeights
+  + process.pileupWeight + process.flatGenWeights
+  + process.productOfAllWeights + process.productOfAllWeightsPUUp + process.productOfAllWeightsPUDn
   + process.tpTree
 )
 
