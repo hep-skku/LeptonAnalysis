@@ -57,9 +57,9 @@ process.tagElectrons = cms.EDFilter("PATElectronSelector",
     cut = cms.string(
         "gsfTrack.isNonnull && superCluster.isNonnull"
       + "&& pt >= 25 && abs(superCluster.eta) <= 2.5"
-      + "&& !(1.4442<=abs(superCluster.eta)<=1.566)"
+      + "&& !(1.4442<=abs(superCluster.eta) && abs(superCluster.eta)<=1.566)"
 #      + "&& !triggerObjectMatchesByFilter('hltEle23WPLooseGsfTrackIsoFilter').empty()"
-#      + "&& !triggerObjectMatchesByPath('HLT_Ele23_WPLoose_Gsf_v*').empty()"
+      + "&& !triggerObjectMatchesByPath('HLT_Ele23_WPLoose_Gsf_v*').empty()"
     ),
 )
 process.oneTag  = cms.EDFilter("CandViewCountFilter", src = cms.InputTag("tagElectrons"), minNumber = cms.uint32(1))
@@ -90,10 +90,6 @@ process.njets30Module = cms.EDProducer("CandCleanedMultiplicityCounter",
     minTagObjDR   = cms.double(0.3),
     minProbeObjDR = cms.double(0.3),
 )
-#genWeightInfo = cms.EDProducer("GenWeightInfo",
-#    pairTag= cms.InputTag("tpPairs"),
-#    genInfoTag= cms.InputTag("generator")
-#)
 process.load("CATTools.CatProducer.pileupWeight_cff")
 process.load("CATTools.CatProducer.genWeight_cff")
 process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
@@ -104,7 +100,20 @@ process.productOfAllWeights = cms.EDProducer("CandToWeightProductProducer",
         cms.InputTag("flatGenWeights"),
     ),
 )
+process.productOfAllWeightsPUUp = process.productOfAllWeights.clone(
+    weights = cms.VInputTag(
+        cms.InputTag("pileupWeight:up"),
+        cms.InputTag("flatGenWeights"),
+    )
+)
+process.productOfAllWeightsPUDn = process.productOfAllWeights.clone(
+    weights = cms.VInputTag(
+        cms.InputTag("pileupWeight:dn"),
+        cms.InputTag("flatGenWeights"),
+    )
+)
 
+## Tree producer
 process.tpTree = cms.EDAnalyzer("TagProbeFitTreeProducer",
     # choice of tag and probe pairs, and arbitration
     tagProbePairs = cms.InputTag("tpPairs"),
@@ -152,6 +161,8 @@ process.tpTree = cms.EDAnalyzer("TagProbeFitTreeProducer",
     tagFlags = cms.PSet(),
     pairVariables = cms.PSet(
         weight = cms.InputTag("productOfAllWeights"),
+        weightPUUp = cms.InputTag("productOfAllWeightsPUUp"),
+        weightPUDn = cms.InputTag("productOfAllWeightsPUDn"),
         nJets30 = cms.InputTag("njets30Module"),
         dz      = cms.string("daughter(0).vz - daughter(1).vz"),
         pt      = cms.string("pt"),
