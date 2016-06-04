@@ -157,7 +157,14 @@ process.tpTree = cms.EDAnalyzer("TagProbeFitTreeProducer",
     tagVariables = cms.PSet(
         nvertices = cms.InputTag("nverticesModule"),
     ),
-    tagFlags = cms.PSet(),
+    tagFlags = cms.PSet(
+        HLT_ElEl_leg1 = cms.string("!triggerObjectMatchesByFilter('hltEle17Ele12CaloIdLTrackIdLIsoVLTrackIsoLeg1Filter').empty()"),
+        HLT_ElEl_leg2 = cms.string("!triggerObjectMatchesByFilter('hltEle17Ele12CaloIdLTrackIdLIsoVLTrackIsoLeg2Filter').empty()"),
+        HLT_ElEl_DZ   = cms.string("!triggerObjectMatchesByFilter('hltEle17Ele12CaloIdLTrackIdLIsoVLDZFilter').empty()"),
+
+        HLT_MuEl_path1 = cms.string("!triggerObjectMatchesByFilter('hltMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVLElectronlegTrackIsoFilter').empty()"),
+        HLT_MuEl_path2 = cms.string("!triggerObjectMatchesByFilter('hltMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVLElectronlegTrackIsoFilter').empty()"),
+    ),
     pairVariables = cms.PSet(
         weight = cms.InputTag("productOfAllWeights"),
         weightPUUp = cms.InputTag("productOfAllWeightsPUUp"),
