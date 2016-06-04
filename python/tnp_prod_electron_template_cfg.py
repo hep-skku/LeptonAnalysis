@@ -57,6 +57,7 @@ process.patElectronsWithTrigger = cms.EDProducer("PATTriggerMatchElectronEmbedde
     matches = cms.VInputTag(cms.InputTag("matchElectronTriggers")),
 )
 
+
 process.patElectronSequence = cms.Sequence(
     process.baseElectrons + process.twoBaseElectrons
   + process.unpackedPatTrigger + process.matchElectronTriggers
@@ -84,6 +85,28 @@ process.tpPairs = cms.EDProducer("CandViewShallowCloneCombiner",
     decay = cms.string('tagElectrons@+ probeElectrons@-'),
 )
 process.onePair = cms.EDFilter("CandViewCountFilter", src = cms.InputTag("tpPairs"), minNumber = cms.uint32(1))
+
+## Calculate isolation
+process.load("RecoEgamma.EgammaIsolationAlgos.egmGedGsfElectronPFIsolation_cfi")
+process.eleIso = process.egmGedGsfElectronPFNoPileUpIsolation.clone(
+    srcToIsolate = cms.InputTag("probeElectrons"),
+    srcForIsolationCone = cms.InputTag("packedPFCandidates"),
+)
+process.eleIsoPU = process.egmGedGsfElectronPFPileUpIsolation.clone(
+    srcToIsolate = cms.InputTag("probeElectrons"),
+    srcForIsolationCone = cms.InputTag("packedPFCandidates"),
+)
+process.eleEA = cms.EDProducer("ElectronEAMapProducer",
+    src = cms.InputTag("probeElectrons"),
+    effAreas = cms.FileInPath("RecoEgamma/ElectronIdentification/data/Spring15/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_25ns.txt"),
+)
+process.rho = cms.EDProducer("CandToWeightProductProducer",
+    src = cms.InputTag("tagElectrons"),
+    weights = cms.VInputTag(cms.InputTag("fixedGridRhoFastjetAll")),
+)
+process.eleIsolationSequence = cms.Sequence(
+    process.eleIso + process.eleIsoPU + process.eleEA + process.rho
+)
 
 ## Event variables associated with tag or Z candidates (from MuonAnalysis/TagAndProbe)
 process.nverticesModule = cms.EDProducer("VertexMultiplicityCounter",
@@ -128,10 +151,31 @@ process.tpTree = cms.EDAnalyzer("TagProbeFitTreeProducer",
         idCutBasedMedium = cms.string("electronID('cutBasedElectronID-Spring15-25ns-V1-standalone-medium')"),
         idCutBasedTight  = cms.string("electronID('cutBasedElectronID-Spring15-25ns-V1-standalone-tight')"),
 
-        idMvaWp80 = cms.string("electronID('mvaEleID-Spring15-25ns-Trig-V1-wp80')"),
-        idMvaWp90 = cms.string("electronID('mvaEleID-Spring15-25ns-Trig-V1-wp90')"),
+        idMVA_Wp80 = cms.string("electronID('mvaEleID-Spring15-25ns-Trig-V1-wp80')"),
+        idMVA_Wp90 = cms.string("electronID('mvaEleID-Spring15-25ns-Trig-V1-wp90')"),
+
+        ## Variables for the isolation
+        chIso = cms.InputTag("eleIso", "h+-DR030-BarVeto000-EndVeto001"),
+        nhIso = cms.InputTag("eleIso", "h0-DR030-BarVeto000-EndVeto000"),
+        phIso = cms.InputTag("eleIso", "gamma-DR030-BarVeto000-EndVeto008"),
+        puIso = cms.InputTag("eleIsoPU", "h+-DR030-BarVeto000-EndVeto001"),
+        effArea = cms.InputTag("eleEA"),
     ),
     flags = cms.PSet(
+        ## Preselection for triggered MVA
+        ## See https://twiki.cern.ch/twiki/bin/view/CMS/MultivariateElectronIdentificationRun2
+        idMVA_Presel = cms.string(
+            "(pt > 15 && abs(eta) < 0.8 "
+          + "  && full5x5_sigmaIetaIeta < 0.012 && hcalOverEcal < 0.09"
+          + "  && ecalPFClusterIso/pt < 0.37 && hcalPFClusterIso/pt < 0.25 && dr03TkSumPt/pt < 0.18"
+          + "  && abs(deltaEtaSuperClusterTrackAtVtx) < 0.0095"
+          + "  && abs(deltaPhiSuperClusterTrackAtVtx) < 0.065)"
+          + "||"
+          + "(pt > 15 && abs(eta) >= 0.8 "
+          + "  && full5x5_sigmaIetaIeta < 0.033 && hcalOverEcal < 0.09"
+          + "  && ecalPFClusterIso/pt < 0.45 && hcalPFClusterIso/pt < 0.28 && dr03TkSumPt/pt < 0.18)"
+        ),
+
         HLT_Ele23_WPLoose = cms.string("!triggerObjectMatchesByPath('HLT_Ele23_WPLoose_Gsf_v*').empty()"),
 
         ## SingleElectron path
@@ -156,6 +200,10 @@ process.tpTree = cms.EDAnalyzer("TagProbeFitTreeProducer",
     ),
     tagVariables = cms.PSet(
         nvertices = cms.InputTag("nverticesModule"),
+        rho       = cms.InputTag("rho"),
+        pt        = cms.string("pt"),
+        eta       = cms.string("eta"),
+        scEta     = cms.string("superCluster.eta"),
     ),
     tagFlags = cms.PSet(
         HLT_ElEl_leg1 = cms.string("!triggerObjectMatchesByFilter('hltEle17Ele12CaloIdLTrackIdLIsoVLTrackIsoLeg1Filter').empty()"),
@@ -169,9 +217,9 @@ process.tpTree = cms.EDAnalyzer("TagProbeFitTreeProducer",
         weight = cms.InputTag("productOfAllWeights"),
         weightPUUp = cms.InputTag("productOfAllWeightsPUUp"),
         weightPUDn = cms.InputTag("productOfAllWeightsPUDn"),
-        nJets30 = cms.InputTag("njets30Module"),
-        dz      = cms.string("daughter(0).vz - daughter(1).vz"),
-        pt      = cms.string("pt"),
+        nJets30  = cms.InputTag("njets30Module"),
+        dz       = cms.string("daughter(0).vz - daughter(1).vz"),
+        pt       = cms.string("pt"),
         rapidity = cms.string("rapidity"),
         deltaR   = cms.string("deltaR(daughter(0).eta, daughter(0).phi, daughter(1).eta, daughter(1).phi)"),
     ),
@@ -184,6 +232,7 @@ process.tnpSimpleSequence = cms.Sequence(
     process.tagElectrons + process.oneTag
   + process.probeElectrons
   + process.tpPairs + process.onePair
+  + process.eleIsolationSequence
   + process.nverticesModule + process.njets30Module
   + process.pileupWeight + process.flatGenWeights
   + process.productOfAllWeights + process.productOfAllWeightsPUUp + process.productOfAllWeightsPUDn
