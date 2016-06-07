@@ -29,6 +29,10 @@ git clone -n https://github.com/cms-analysis/MuonAnalysis-TagAndProbe TagAndProb
 cd TagAndProbe
 git checkout 76X
 
+## Install Electron Tag and Probe packages
+cd $CMSSW_BASE/src
+git-cms-merge-topic matteosan1:egm_tnp_76X
+
 ## Install LeptonAnalysis subpackage
 cd $CMSSW_BASE/src/CATTools
 git clone https://github.com/hep-skku/LeptonAnalysis
