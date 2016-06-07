@@ -70,6 +70,7 @@ process.tagElectrons = cms.EDFilter("PATElectronSelector",
     cut = cms.string(
         "pt >= 25"
       + "&& !(1.4442<=abs(superCluster.eta) && abs(superCluster.eta)<=1.566)"
+      + "&& electronID('cutBasedElectronID-Spring15-25ns-V1-standalone-tight') > 0.5"
       + "&& !triggerObjectMatchesByPath('HLT_Ele23_WPLoose_Gsf_v*').empty()"
     ),
 )
