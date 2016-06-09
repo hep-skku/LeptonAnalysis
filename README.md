@@ -21,7 +21,7 @@ git clone -n https://github.com/vallot/CATTools
 cd CATTools
 git checkout cat76x
 git submodule init
-git submodule checkout
+git submodule update
 
 ## Install Muon Tag and Probe additional packages
 git cms-addpkg MuonAnalysis
