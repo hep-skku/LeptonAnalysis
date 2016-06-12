@@ -24,6 +24,7 @@ git submodule init
 git submodule update
 
 ## Install Muon Tag and Probe additional packages
+cd $CMSSW_BASE/src
 git cms-addpkg MuonAnalysis
 git clone -n https://github.com/cms-analysis/MuonAnalysis-TagAndProbe TagAndProbe
 cd TagAndProbe
